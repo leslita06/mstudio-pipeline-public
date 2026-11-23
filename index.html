@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mstudio · Pipeline des prospects</title>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--nuit:#03045E;--encre:#28264D;--bleu:#0077B6;--cyan:#00B4D8;--ciel:#47BDFF;--vert:#38B6AB;--fond:#F3F6FA;--ligne:#DCE3EC;--rouge:#C62828;--orange:#E08A00}
+*{box-sizing:border-box}body{margin:0;font-family:'Work Sans',Arial,sans-serif;background:var(--fond);color:var(--encre);font-size:14px}
+header{background:var(--nuit);color:#fff;padding:12px 20px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+header img{height:30px}header h1{font-size:18px;margin:0;font-weight:600}header .maj{opacity:.7;font-size:12px;margin-left:auto}
+.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:12px 20px;background:#fff;border-bottom:1px solid var(--ligne)}
+.bar select,.bar input{font:inherit;padding:6px 8px;border:1px solid var(--ligne);border-radius:6px;background:#fff}
+button{font:inherit;cursor:pointer;border:0;border-radius:6px;padding:7px 12px;background:var(--bleu);color:#fff;font-weight:500}
+button.sec{background:#fff;color:var(--bleu);border:1px solid var(--bleu)}button.on{background:var(--nuit);color:#fff;border-color:var(--nuit)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;padding:14px 20px}
+.kpi{background:#fff;border-radius:10px;padding:12px 14px;border-left:4px solid var(--cyan)}.kpi b{display:block;font-size:24px;color:var(--nuit)}.kpi span{font-size:12px;opacity:.8}
+.kpi.alerte{border-color:var(--rouge)}.kpi.attention{border-color:var(--orange)}.kpi.ok{border-color:var(--vert)}
+#vue{padding:0 20px 30px}
+.board{display:flex;gap:10px;overflow-x:auto;padding-bottom:10px}
+.col{min-width:230px;flex:1;background:#E8EEF5;border-radius:10px;padding:8px}
+.col h3{font-size:13px;margin:4px 4px 8px;display:flex;justify-content:space-between;color:var(--nuit)}
+.col.over{outline:2px dashed var(--cyan)}
+.card{background:#fff;border-radius:8px;padding:9px 10px;margin-bottom:8px;box-shadow:0 1px 2px rgba(0,0,0,.08);cursor:grab;border-left:4px solid var(--ligne)}
+.card.p-Haute{border-left-color:var(--rouge)}.card.p-Moyenne{border-left-color:var(--orange)}.card.p-Basse{border-left-color:var(--vert)}
+.card .t{font-weight:600;color:var(--nuit)}.card .m{font-size:12px;opacity:.8;margin-top:3px}.card .a{font-size:12px;margin-top:6px}
+.tag{display:inline-block;font-size:11px;padding:1px 7px;border-radius:10px;margin-top:6px;font-weight:600}
+.retard{background:#FDE2E2;color:var(--rouge)}.bientot{background:#FFF1CC;color:#8A5A00}.atemps{background:#DDF4EF;color:#1D7A70}
+table{width:100%;border-collapse:collapse;background:#fff;border-radius:10px;overflow:hidden}
+th{background:var(--bleu);color:#fff;text-align:left;padding:8px;font-weight:600;font-size:13px;cursor:pointer;white-space:nowrap}
+td{padding:8px;border-bottom:1px solid var(--ligne);vertical-align:top}tr:hover td{background:#F5FAFE;cursor:pointer}
+dialog{border:0;border-radius:12px;padding:0;width:min(720px,95vw)}dialog::backdrop{background:rgba(3,4,94,.4)}
+dialog form{padding:18px 20px}dialog h2{margin:0 0 12px;color:var(--nuit);font-size:18px}
+.g{display:grid;grid-template-columns:1fr 1fr;gap:10px}.g label{font-size:12px;font-weight:600;display:flex;flex-direction:column;gap:4px}
+.g .w{grid-column:1/-1}.g input,.g select,.g textarea{font:inherit;font-weight:400;padding:7px;border:1px solid var(--ligne);border-radius:6px}
+.act{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}.act .sup{margin-right:auto;background:#fff;color:var(--rouge);border:1px solid var(--rouge)}
+.vide{padding:30px;text-align:center;opacity:.7}footer{font-size:11px;opacity:.6;padding:0 20px 20px}
+@media(max-width:640px){.g{grid-template-columns:1fr}header .maj{margin-left:0}}
+</style></head><body>
+<header><img src="https://cdn.prod.website-files.com/63871f0092739963f4dac3c1/638f56107fe4329b69320135_logo_mstudio_blanc_cropped%402x-p-500.png" alt="Mstudio"><h1>Pipeline des prospects (version publique)</h1><span class="maj" id="maj"></span></header>
+<div class="bar">
+<button id="bTab" class="sec on">Tableau par étape</button><button id="bList" class="sec">Liste</button>
+<input id="q" placeholder="Rechercher un compte, une action…" style="min-width:200px">
+<select id="fSeg"><option value="">Tous les segments</option></select>
+<select id="fPor" hidden><option value="">Tous les porteurs</option></select>
+<select id="fPri"><option value="">Toutes priorités</option></select>
+<select id="fAl"><option value="">Toutes les échéances</option><option value="retard">En retard</option><option value="bientot">Sous 24 h</option></select>
+<button id="bAdd">+ Nouveau compte</button>
+<button id="bExp" class="sec">Exporter (CSV)</button>
+<label class="sec" style="cursor:pointer;color:var(--bleu);font-weight:500;padding:6px 10px;border:1px solid var(--bleu);border-radius:6px">Importer<input type="file" id="fImp" accept=".csv" hidden></label>
+<button id="bReset" class="sec">Revenir à la version du 23/11</button>
+</div>
+<div class="kpis" id="kpis"></div>
+<div id="vue"></div>
+<footer>Mstudio. Version publique : les noms des comptes, des interlocuteurs et de l'équipe, ainsi que le détail des actions et des notes, sont masqués. Les modifications sont enregistrées dans ce navigateur ; exportez en CSV pour les partager ou les mettre à jour dans le Google Sheet.</footer>
+<dialog id="dlg"><form method="dialog" id="frm"><h2 id="dT">Compte</h2><div class="g">
+<label class="w">Compte<input name="compte" required></label>
+<label>Segment<select name="segment"></select></label><label>Offre visée<select name="offre"></select></label>
+<label>Étape<select name="etape"></select></label><label>Priorité<select name="priorite"></select></label>
+<label>Porteur Mstudio<input name="porteur"></label><label>Interlocuteurs<input name="interlocuteurs"></label>
+<label>Date du prochain RDV<input type="date" name="rdv"></label><label>Échéance de l'action<input type="date" name="echeance"></label>
+<label class="w">Prochaine action<input name="action"></label>
+<label>Besoin confirmé<select name="besoin"></select></label><label>Décideur identifié<select name="decideur"></select></label>
+<label>Calendrier connu<select name="calendrier"></select></label><label>Source<input name="source"></label>
+<label class="w">Notes<textarea name="notes" rows="3"></textarea></label>
+</div><div class="act"><button type="button" class="sup" id="bDel">Supprimer</button><button type="button" class="sec" id="bAnn">Annuler</button><button type="submit">Enregistrer</button></div></form></dialog>
+<script>
+const SRC=[{"id": 1, "compte": "Institution publique A", "segment": "Secteur public et bailleurs", "offre": "Mstudio : contenus, playbooks et agents IA pour l'État", "interlocuteurs": "", "porteur": "Équipe Mstudio", "source": "", "etape": "4. RDV planifié", "rdv": "2026-11-25", "action": "Préparer le rendez-vous", "echeance": "2026-11-24", "priorite": "Haute", "besoin": "Non qualifié", "decideur": "Non qualifié", "calendrier": "Non qualifié", "notes": ""}, {"id": 2, "compte": "Institution publique B", "segment": "Secteur public et bailleurs", "offre": "Mstudio : contenus, playbooks et agents IA pour l'État", "interlocuteurs": "", "porteur": "Équipe Mstudio", "source": "", "etape": "4. RDV planifié", "rdv": "2026-11-26", "action": "Préparer le rendez-vous", "echeance": "2026-11-25", "priorite": "Haute", "besoin": "Non qualifié", "decideur": "Non qualifié", "calendrier": "Non qualifié", "notes": ""}, {"id": 3, "compte": "Institution publique C", "segment": "Secteur public et bailleurs", "offre": "Mstudio : contenus, playbooks et agents IA pour l'État", "interlocuteurs": "", "porteur": "Équipe Mstudio", "source": "", "etape": "4. RDV planifié", "rdv": "2026-11-26", "action": "Préparer le rendez-vous", "echeance": "2026-11-25", "priorite": "Haute", "besoin": "Non qualifié", "decideur": "Non qualifié", "calendrier": "Non qualifié", "notes": ""}, {"id": 4, "compte": "Institution publique D", "segment": "Secteur public et bailleurs", "offre": "Mstudio : contenus, playbooks et agents IA pour l'État", "interlocuteurs": "", "porteur": "Équipe Mstudio", "source": "", "etape": "7. En pause", "rdv": "", "action": "Proposer un nouveau créneau", "echeance": "2026-11-27", "priorite": "Moyenne", "besoin": "Non qualifié", "decideur": "Non qualifié", "calendrier": "Non qualifié", "notes": ""}, {"id": 5, "compte": "Entreprise A", "segment": "Entreprise privée", "offre": "Yelema : agents IA pour entreprise", "interlocuteurs": "", "porteur": "Équipe Mstudio", "source": "", "etape": "4. RDV planifié", "rdv": "2026-11-24", "action": "Préparer le rendez-vous", "echeance": "2026-11-24", "priorite": "Haute", "besoin": "Non qualifié", "decideur": "Non qualifié", "calendrier": "Non qualifié", "notes": ""}, {"id": 6, "compte": "Entreprise B", "segment": "Entreprise privée", "offre": "Yelema : agents IA pour entreprise", "interlocuteurs": "", "porteur": "Équipe Mstudio", "source": "", "etape": "4. RDV planifié", "rdv": "2026-11-24", "action": "Préparer le rendez-vous", "echeance": "2026-11-24", "priorite": "Haute", "besoin": "Non qualifié", "decideur": "Non qualifié", "calendrier": "Non qualifié", "notes": ""}, {"id": 7, "compte": "Entreprise C", "segment": "Entreprise privée", "offre": "Yelema : agents IA pour entreprise", "interlocuteurs": "", "porteur": "Équipe Mstudio", "source": "", "etape": "4. RDV planifié", "rdv": "2026-11-24", "action": "Préparer le rendez-vous", "echeance": "2026-11-24", "priorite": "Moyenne", "besoin": "Non qualifié", "decideur": "Non qualifié", "calendrier": "Non qualifié", "notes": ""}, {"id": 8, "compte": "Entreprise D", "segment": "Entreprise privée", "offre": "Yelema : agents IA pour entreprise", "interlocuteurs": "", "porteur": "Équipe Mstudio", "source": "", "etape": "4. RDV planifié", "rdv": "2026-11-25", "action": "Préparer le rendez-vous", "echeance": "2026-11-24", "priorite": "Moyenne", "besoin": "Non qualifié", "decideur": "Non qualifié", "calendrier": "Non qualifié", "notes": ""}, {"id": 9, "compte": "Entreprise E", "segment": "Entreprise privée", "offre": "Yelema : agents IA pour entreprise", "interlocuteurs": "", "porteur": "Équipe Mstudio", "source": "", "etape": "4. RDV planifié", "rdv": "2026-11-25", "action": "Préparer le rendez-vous", "echeance": "2026-11-24", "priorite": "Moyenne", "besoin": "Non qualifié", "decideur": "Non qualifié", "calendrier": "Non qualifié", "notes": ""}, {"id": 10, "compte": "Entreprise F", "segment": "Entreprise privée", "offre": "Yelema : agents IA pour entreprise", "interlocuteurs": "", "porteur": "Équipe Mstudio", "source": "", "etape": "4. RDV planifié", "rdv": "2026-11-26", "action": "Préparer le rendez-vous", "echeance": "2026-11-25", "priorite": "Moyenne", "besoin": "Non qualifié", "decideur": "Non qualifié", "calendrier": "Non qualifié", "notes": ""}, {"id": 11, "compte": "Entreprise G", "segment": "Entreprise privée", "offre": "Yelema : agents IA pour entreprise", "interlocuteurs": "", "porteur": "Équipe Mstudio", "source": "", "etape": "3. RDV non confirmé", "rdv": "2026-11-26", "action": "Faire confirmer le rendez-vous", "echeance": "2026-11-25", "priorite": "Moyenne", "besoin": "Non qualifié", "decideur": "Non qualifié", "calendrier": "Non qualifié", "notes": ""}, {"id": 12, "compte": "Entreprise H", "segment": "Entreprise privée", "offre": "Yelema : agents IA pour entreprise", "interlocuteurs": "", "porteur": "Équipe Mstudio", "source": "", "etape": "3. RDV non confirmé", "rdv": "2026-11-27", "action": "Faire confirmer le rendez-vous", "echeance": "2026-11-26", "priorite": "Basse", "besoin": "Non qualifié", "decideur": "Non qualifié", "calendrier": "Non qualifié", "notes": ""}, {"id": 13, "compte": "Entreprise I", "segment": "Entreprise privée", "offre": "Yelema : agents IA pour entreprise", "interlocuteurs": "", "porteur": "Équipe Mstudio", "source": "", "etape": "4. RDV planifié", "rdv": "2026-11-27", "action": "Préparer le rendez-vous", "echeance": "2026-11-26", "priorite": "Basse", "besoin": "Non qualifié", "decideur": "Non qualifié", "calendrier": "Non qualifié", "notes": ""}, {"id": 14, "compte": "Partenaire A", "segment": "Partenaire et écosystème", "offre": "Partenariat", "interlocuteurs": "", "porteur": "Équipe Mstudio", "source": "", "etape": "4. RDV planifié", "rdv": "2026-11-26", "action": "Préparer le rendez-vous", "echeance": "2026-11-25", "priorite": "Haute", "besoin": "Non qualifié", "decideur": "Non qualifié", "calendrier": "Non qualifié", "notes": ""}, {"id": 15, "compte": "Partenaire B", "segment": "Partenaire et écosystème", "offre": "Partenariat", "interlocuteurs": "", "porteur": "Équipe Mstudio", "source": "", "etape": "4. RDV planifié", "rdv": "2026-11-26", "action": "Préparer le rendez-vous", "echeance": "2026-11-26", "priorite": "Moyenne", "besoin": "Non qualifié", "decideur": "Non qualifié", "calendrier": "Non qualifié", "notes": ""}, {"id": 16, "compte": "Partenaire C", "segment": "Partenaire et écosystème", "offre": "Partenariat", "interlocuteurs": "", "porteur": "Équipe Mstudio", "source": "", "etape": "4. RDV planifié", "rdv": "2026-11-27", "action": "Préparer le rendez-vous", "echeance": "2026-11-26", "priorite": "Basse", "besoin": "Non qualifié", "decideur": "Non qualifié", "calendrier": "Non qualifié", "notes": ""}];
+const ETAPES=["1. Identifié","2. Contacté","3. RDV non confirmé","4. RDV planifié","5. RDV tenu","6. Qualifié, passé à Sèna","7. En pause","8. Perdu"];
+const SEG=["Secteur public et bailleurs","Entreprise privée","Partenaire et écosystème"];
+const OFF=["Mstudio : contenus, playbooks et agents IA pour l'État","Yelema : agents IA pour entreprise","Partenariat"];
+const PRI=["Haute","Moyenne","Basse"],QUAL=["Non qualifié","Oui","Non"];
+const CLE="mstudio-pipeline-public-v1";
+let D=JSON.parse(localStorage.getItem(CLE)||"null")||structuredClone(SRC),vue="tab",tri=null,edit=null;
+const $=s=>document.querySelector(s),esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const auj=()=>{const d=new Date();d.setHours(0,0,0,0);return d};
+const fr=s=>s?s.split("-").reverse().join("/"):"";
+function alerte(x){if(!x.echeance||/^[68]/.test(x.etape))return"";const j=(new Date(x.echeance+"T00:00")-auj())/864e5;return j<0?"retard":j<=1?"bientot":"atemps"}
+const LIB={retard:"En retard",bientot:"Sous 24 h",atemps:"À temps"};
+function save(){localStorage.setItem(CLE,JSON.stringify(D));render()}
+function opts(sel,arr,first){sel.innerHTML=(first?`<option value="">${first}</option>`:"")+arr.map(v=>`<option>${esc(v)}</option>`).join("")}
+function porteurs(){return[...new Set(D.flatMap(x=>String(x.porteur).split(",").map(s=>s.trim()).filter(Boolean)))].sort()}
+function filtres(){const q=$("#q").value.toLowerCase(),s=$("#fSeg").value,p=$("#fPor").value,r=$("#fPri").value,a=$("#fAl").value;
+return D.filter(x=>(!q||Object.values(x).join(" ").toLowerCase().includes(q))&&(!s||x.segment==s)&&(!p||String(x.porteur).includes(p))&&(!r||x.priorite==r)&&(!a||alerte(x)==a))}
+function kpis(L){const act=L.filter(x=>!/^[78]/.test(x.etape));const n=k=>L.filter(x=>alerte(x)==k).length;
+const qual=L.filter(x=>x.besoin=="Oui"&&x.decideur=="Oui"&&x.calendrier=="Oui").length;
+$("#kpis").innerHTML=`<div class="kpi"><b>${L.length}</b><span>comptes affichés</span></div>
+<div class="kpi"><b>${act.length}</b><span>affaires actives</span></div>
+<div class="kpi ok"><b>${L.filter(x=>/^4/.test(x.etape)).length}</b><span>rendez-vous planifiés</span></div>
+<div class="kpi alerte"><b>${n("retard")}</b><span>actions en retard</span></div>
+<div class="kpi attention"><b>${n("bientot")}</b><span>actions sous 24 h</span></div>
+<div class="kpi"><b>${qual}</b><span>comptes qualifiés (besoin, décideur, calendrier)</span></div>`}
+function carte(x){const a=alerte(x);return`<div class="card p-${esc(x.priorite)}" draggable="true" data-id="${x.id}"><div class="t">${esc(x.compte)}</div>
+<div class="m">${esc(x.porteur)}${x.rdv?" · RDV "+fr(x.rdv):""}</div>${x.action?`<div class="a">${esc(x.action)}</div>`:""}
+${a?`<span class="tag ${a}">${LIB[a]}${x.echeance?" · "+fr(x.echeance):""}</span>`:""}</div>`}
+function render(){const L=filtres();kpis(L);$("#maj").textContent=localStorage.getItem(CLE)?"Version modifiée dans ce navigateur":"Version du 23/11/2026";
+if(!L.length){$("#vue").innerHTML='<div class="vide">Aucun compte ne correspond aux filtres.</div>';return}
+if(vue=="tab"){$("#vue").innerHTML='<div class="board">'+ETAPES.map(e=>{const c=L.filter(x=>x.etape==e);return`<div class="col" data-e="${esc(e)}"><h3><span>${esc(e)}</span><span>${c.length}</span></h3>${c.map(carte).join("")}</div>`}).join("")+"</div>";
+document.querySelectorAll(".card").forEach(c=>{c.ondragstart=ev=>ev.dataTransfer.setData("id",c.dataset.id);c.onclick=()=>ouvrir(c.dataset.id)});
+document.querySelectorAll(".col").forEach(c=>{c.ondragover=ev=>{ev.preventDefault();c.classList.add("over")};c.ondragleave=()=>c.classList.remove("over");
+c.ondrop=ev=>{ev.preventDefault();const x=D.find(y=>y.id==ev.dataTransfer.getData("id"));if(x){x.etape=c.dataset.e;save()}}})}
+else{const C=[["compte","Compte"],["segment","Segment"],["porteur","Porteur"],["etape","Étape"],["rdv","Prochain RDV"],["action","Prochaine action"],["echeance","Échéance"],["priorite","Priorité"]];
+let R=[...L];if(tri)R.sort((a,b)=>String(a[tri]).localeCompare(String(b[tri]),"fr")*(tri==="priorite"?1:1));
+$("#vue").innerHTML=`<table><thead><tr>${C.map(([k,l])=>`<th data-k="${k}">${l}${tri==k?" ▲":""}</th>`).join("")}<th>Alerte</th></tr></thead><tbody>${R.map(x=>{const a=alerte(x);return`<tr data-id="${x.id}">${C.map(([k])=>`<td>${esc(k=="rdv"||k=="echeance"?fr(x[k]):x[k])}</td>`).join("")}<td>${a?`<span class="tag ${a}">${LIB[a]}</span>`:""}</td></tr>`}).join("")}</tbody></table>`;
+document.querySelectorAll("th").forEach(t=>t.onclick=()=>{tri=t.dataset.k||null;render()});document.querySelectorAll("tbody tr").forEach(t=>t.onclick=()=>ouvrir(t.dataset.id))}}
+const F=$("#frm");opts(F.segment,SEG);opts(F.offre,OFF);opts(F.etape,ETAPES);opts(F.priorite,PRI);["besoin","decideur","calendrier"].forEach(k=>opts(F[k],QUAL));
+function ouvrir(id){edit=id?D.find(x=>x.id==id):null;const x=edit||{etape:ETAPES[0],priorite:"Moyenne",besoin:"Non qualifié",decideur:"Non qualifié",calendrier:"Non qualifié",segment:SEG[0],offre:OFF[0]};
+$("#dT").textContent=edit?edit.compte:"Nouveau compte";$("#bDel").style.display=edit?"":"none";
+[...F.elements].forEach(el=>{if(el.name)el.value=x[el.name]??""});$("#dlg").showModal()}
+F.onsubmit=()=>{const v={};[...F.elements].forEach(el=>{if(el.name)v[el.name]=el.value.trim()});
+if(edit)Object.assign(edit,v);else D.push({...v,id:Math.max(0,...D.map(x=>+x.id))+1});save();remplir()};
+$("#bAnn").onclick=()=>$("#dlg").close();$("#bAdd").onclick=()=>ouvrir(null);
+$("#bDel").onclick=()=>{if(edit&&confirm(`Supprimer ${edit.compte} du pipeline ?`)){D=D.filter(x=>x!==edit);$("#dlg").close();save()}};
+const COLS=[["id","N°"],["compte","Compte"],["segment","Segment"],["offre","Offre visée"],["interlocuteurs","Interlocuteurs"],["porteur","Porteur Mstudio"],["source","Source"],["etape","Étape"],["rdv","Date du prochain RDV"],["action","Prochaine action"],["echeance","Échéance de l'action"],["priorite","Priorité"],["besoin","Besoin confirmé"],["decideur","Décideur identifié"],["calendrier","Calendrier connu"],["notes","Notes"]];
+$("#bExp").onclick=()=>{const c=s=>`"${String(s??"").replace(/"/g,'""')}"`;const t="\ufeff"+[COLS.map(x=>c(x[1])).join(";"),...D.map(x=>COLS.map(([k])=>c(k=="rdv"||k=="echeance"?fr(x[k]):x[k])).join(";"))].join("\r\n");
+const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([t],{type:"text/csv;charset=utf-8"}));const d=new Date();a.download=`Mstudio_pipeline-des-prospects_${d.toISOString().slice(0,10)}.csv`;a.click()};
+function parseCSV(t){const R=[];let r=[],f="",q=false;t=t.replace(/^\ufeff/,"");for(let i=0;i<t.length;i++){const ch=t[i];if(q){if(ch=='"'){if(t[i+1]=='"'){f+='"';i++}else q=false}else f+=ch}
+else if(ch=='"')q=true;else if(ch==";"){r.push(f);f=""}else if(ch=="\n"){r.push(f.replace(/\r$/,""));R.push(r);r=[];f=""}else f+=ch}if(f||r.length){r.push(f);R.push(r)}return R}
+$("#fImp").onchange=ev=>{const fi=ev.target.files[0];if(!fi)return;fi.text().then(t=>{const R=parseCSV(t);const h=R.shift().map(s=>s.trim());const idx=COLS.map(([k,l])=>h.indexOf(l));
+if(idx[1]<0){alert("Ce fichier n'a pas la colonne « Compte » : ce n'est pas un export du pipeline.");return}
+const N=R.filter(r=>r[idx[1]]).map((r,i)=>{const o={};COLS.forEach(([k],j)=>{let v=idx[j]>=0?r[idx[j]]:"";if((k=="rdv"||k=="echeance")&&/^\d{2}\/\d{2}\/\d{4}$/.test(v))v=v.split("/").reverse().join("-");o[k]=v});o.id=o.id||i+1;return o});
+if(confirm(`Remplacer le pipeline affiché par les ${N.length} comptes du fichier ?`)){D=N;save();remplir()}});ev.target.value=""};
+$("#bReset").onclick=()=>{if(confirm("Revenir à la version du 23/11/2026 ? Les modifications faites dans ce navigateur seront perdues (exportez-les d'abord si besoin).")){localStorage.removeItem(CLE);D=structuredClone(SRC);render();remplir()}};
+function remplir(){const s=$("#fPor").value;opts($("#fSeg"),SEG,"Tous les segments");opts($("#fPor"),porteurs(),"Tous les porteurs");opts($("#fPri"),PRI,"Toutes priorités");$("#fPor").value=s}
+$("#bTab").onclick=()=>{vue="tab";$("#bTab").classList.add("on");$("#bList").classList.remove("on");render()};
+$("#bList").onclick=()=>{vue="list";$("#bList").classList.add("on");$("#bTab").classList.remove("on");render()};
+["#q","#fSeg","#fPor","#fPri","#fAl"].forEach(s=>$(s).oninput=render);
+remplir();render();
+</script></body></html>
